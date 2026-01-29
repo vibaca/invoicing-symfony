@@ -1,0 +1,7 @@
+{
+    "_readme": [
+        "This file locks the recipes installed by Symfony Flex.",
+        "Read more at https://github.com/symfony/flex"
+    ],
+    "recipes": {}
+}

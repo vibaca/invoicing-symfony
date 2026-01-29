@@ -1,0 +1,39 @@
+parameters:
+    locale: 'en'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            - '../src/Tests/'
+
+    # Domain Services
+    App\Domain\:
+        resource: '../src/Domain/'
+        tags: ['domain.service']
+
+    # Application Services (Use Cases)
+    App\Application\:
+        resource: '../src/Application/'
+        tags: ['application.service']
+
+    # Infrastructure Services
+    App\Infrastructure\:
+        resource: '../src/Infrastructure/'
+        tags: ['infrastructure.service']
+
+    # Presentation Layer (Controllers)
+    App\Presentation\:
+        resource: '../src/Presentation/'
+        tags: ['controller.service_arguments']
+
+    # Event Bus Implementation
+    App\Domain\Shared\Event\EventBus:
+        alias: App\Infrastructure\EventBus\RabbitMQEventBus

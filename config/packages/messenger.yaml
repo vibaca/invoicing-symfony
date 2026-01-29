@@ -1,0 +1,18 @@
+framework:
+    messenger:
+        transports:
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: invoicing_events
+                        type: topic
+                    queues:
+                        invoicing_events_queue:
+                            binding_keys:
+                                - 'invoice.*'
+                                - 'customer.*'
+                                - 'product.*'
+
+        routing:
+            'App\Domain\Shared\Event\DomainEvent': async

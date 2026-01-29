@@ -1,0 +1,14 @@
+nelmio_api_doc:
+    areas:
+        default:
+            path_patterns:
+                - ^/api
+            with_annotation: false
+    documentation:
+        info:
+            title: Invoicing System API
+            description: REST API for Invoicing System with DDD, Hexagonal Architecture, CQRS
+            version: 1.0.0
+        servers:
+            - url: http://localhost:8080
+              description: Local development server

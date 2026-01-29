@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: invoicing_postgres
+    environment:
+      POSTGRES_DB: invoicing_db
+      POSTGRES_USER: invoicing_user
+      POSTGRES_PASSWORD: invoicing_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - invoicing_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invoicing_user -d invoicing_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: invoicing_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq_user
+      RABBITMQ_DEFAULT_PASS: rabbitmq_pass
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - invoicing_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: invoicing_php
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - invoicing_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_db?serverVersion=16&charset=utf8
+      RABBITMQ_URL: amqp://rabbitmq_user:rabbitmq_pass@rabbitmq:5672/%2f
+      APP_ENV: dev
+      APP_SECRET: ${APP_SECRET:-change_this_secret_key_in_production}
+
+  nginx:
+    image: nginx:alpine
+    container_name: invoicing_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - invoicing_network
+    depends_on:
+      - php
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  invoicing_network:
+    driver: bridge
