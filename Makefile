@@ -1,4 +1,4 @@
-.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset
+.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset env-create reset
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -70,6 +70,15 @@ migrate-test: ## Run database migrations on test database
 
 migrate-create: ## Create a new migration
 	docker-compose run --rm php bin/console doctrine:migrations:generate
+
+.env-create: ## Create .env from .env.test if missing
+	@if [ ! -f .env ]; then \
+		echo "Creating .env from .env.test"; \
+		cp .env.test .env; \
+		echo "✓ .env created - please edit .env to adjust local credentials"; \
+	else \
+		echo ".env already exists"; \
+	fi
 
 test-db-create: ## Create test database
 	docker-compose exec -T postgres psql -U invoicing_user -d postgres -c "CREATE DATABASE invoicing_test_db;" || echo "Database may already exist"
