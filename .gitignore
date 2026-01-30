@@ -23,3 +23,24 @@
 .idea/
 .phpstorm.meta.php
 ###< ide ###
+
+# Local env
+.env
+.env.test
+
+# PHPUnit cache and results
+.phpunit.cache/
+.phpunit.result.cache
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+
+# Composer
+/vendor/
+/composer.phar
+
+# Symfony var
+/var/
+config/reference.php
