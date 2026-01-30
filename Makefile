@@ -91,3 +91,11 @@ check: ## Check if services are running
 	@curl -s http://localhost:8080 > /dev/null && echo "Nginx is responding" || echo "Nginx is not responding"
 
 setup: build install migrate up ## Complete setup (build, install, migrate, start)
+
+reset: # Complete reset: removes dependencies, containers and reinstalls everything
+	@echo "🧹 Resetting project"
+	rm -rf vendor/ var/ composer.lock
+	docker-compose down -v
+	docker system prune -f
+	$(MAKE) setup
+	@echo "✅ Project reset and ready"
