@@ -71,7 +71,7 @@ migrate-test: ## Run database migrations on test database
 migrate-create: ## Create a new migration
 	docker-compose run --rm php bin/console doctrine:migrations:generate
 
-.env-create: ## Create .env from .env.test if missing
+env-create: ## Create .env from .env.test if missing
 	@if [ ! -f .env ]; then \
 		echo "Creating .env from .env.test"; \
 		cp .env.test .env; \
