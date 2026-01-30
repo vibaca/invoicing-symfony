@@ -114,8 +114,8 @@ setup: build install migrate up ## Complete setup (build, install, migrate, star
 reset:
 	@echo "🧹 Resetting project to fresh git clone state (project-scoped)..."
 	rm -rf vendor/ var/ composer.lock
-    ## Stop containers, remove project images built by compose, remove project volumes and orphans
-	docker-compose down --rmi local -v --remove-orphans
+    ## stop and remove only this compose project containers, images and volumes
+	docker-compose -p invoicing-symfony down --rmi local -v --remove-orphans
     ## Remove images created/labelled by this compose project (safe: only project images)
 	-docker image rm $$(docker images --filter "label=com.docker.compose.project=invoicing-symfony" -q) 2>/dev/null || true
 	@echo "✅ Project reset. Run 'make setup' to install everything."
