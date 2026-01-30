@@ -1,4 +1,4 @@
-.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset env-create reset
+.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset env-create env-test-create reset
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -71,13 +71,44 @@ migrate-test: ## Run database migrations on test database
 migrate-create: ## Create a new migration
 	docker-compose run --rm php bin/console doctrine:migrations:generate
 
-env-create: ## Create .env from .env.test if missing
-	@if [ ! -f .env ]; then \
+env-create: ## Create .env from .env.example/.env.test or create minimal .env if no template
+	@if [ -f .env ]; then \
+		echo ".env already exists"; \
+	elif [ -f .env.example ]; then \
+		echo "Creating .env from .env.example"; \
+		cp .env.example .env; \
+		echo "✓ .env created - please edit .env to adjust local credentials"; \
+	elif [ -f .env.test ]; then \
 		echo "Creating .env from .env.test"; \
 		cp .env.test .env; \
 		echo "✓ .env created - please edit .env to adjust local credentials"; \
 	else \
-		echo ".env already exists"; \
+		echo "No template (.env.example or .env.test) found — creating minimal .env"; \
+		echo 'APP_ENV=dev' > .env; \
+		echo 'APP_SECRET=change_me' >> .env; \
+		echo 'DATABASE_URL=postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_db?serverVersion=16&charset=utf8' >> .env; \
+		echo "✓ minimal .env created (edit credentials)"; \
+	fi
+
+env-test-create: ## Create .env.test from .env.test.dist/.env.example or create minimal .env.test if no template
+	@if [ -f .env.test ]; then \
+		echo ".env.test already exists"; \
+	elif [ -f .env.test.dist ]; then \
+		echo "Creating .env.test from .env.test.dist"; \
+		cp .env.test.dist .env.test; \
+		echo "✓ .env.test created - please edit .env.test to adjust local credentials"; \
+	elif [ -f .env.example ]; then \
+		echo "Creating .env.test from .env.example (overriding DATABASE_URL + APP_ENV)"; \
+		awk '/^DATABASE_URL=/ {print "DATABASE_URL=postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_test_db?serverVersion=16&charset=utf8"; next} {print}' .env.example > .env.test; \
+		awk '/^APP_ENV=/ {print "APP_ENV=test"; next} {print}' .env.test > .env.test.tmp && mv .env.test.tmp .env.test || true; \
+		echo "✓ .env.test created - please edit .env.test to adjust local credentials"; \
+	else \
+		echo "No template (.env.test.dist or .env.example) found — creating minimal .env.test"; \
+		echo 'APP_ENV=test' > .env.test; \
+		echo 'APP_SECRET=change_me' >> .env.test; \
+		echo 'DATABASE_URL=postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_test_db?serverVersion=16&charset=utf8' >> .env.test; \
+		echo 'MESSENGER_TRANSPORT_DSN=sync://' >> .env.test; \
+		echo "✓ minimal .env.test created (edit credentials)"; \
 	fi
 
 test-db-create: ## Create test database
@@ -114,8 +145,8 @@ setup: build install migrate up ## Complete setup (build, install, migrate, star
 reset:
 	@echo "🧹 Resetting project to fresh git clone state (project-scoped)..."
 	rm -rf vendor/ var/ composer.lock
-    ## stop and remove only this compose project containers, images and volumes
-	docker-compose -p invoicing-symfony down --rmi local -v --remove-orphans
-    ## Remove images created/labelled by this compose project (safe: only project images)
-	-docker image rm $$(docker images --filter "label=com.docker.compose.project=invoicing-symfony" -q) 2>/dev/null || true
+	## stop and remove only this compose project containers, images and volumes
+		docker-compose -p invoicing-symfony down --rmi local -v --remove-orphans
+	## Remove images created/labelled by this compose project (safe: only project images)
+		docker image rm $$(docker images --filter "label=com.docker.compose.project=invoicing-symfony" -q) 2>/dev/null || true
 	@echo "✅ Project reset. Run 'make setup' to install everything."

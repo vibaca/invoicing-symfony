@@ -100,6 +100,20 @@ make shell          # Open PHP container shell
 make logs           # Show container logs
 make status         # Show container status
 make check          # Check if services are running
+
+# Test environment helpers
+
+Use committed templates for environment files and copy them locally:
+
+```bash
+# Development env
+cp .env.example .env
+
+# Test env (copy the distributed template)
+cp .env.test.dist .env.test
+```
+
+`.env` and `.env.test` are ignored by Git; keep only templates (`.env.example`, `.env.test.dist`) in the repository and copy them locally to avoid committing secrets.
 ```
 
 ### Reinitialize development database

@@ -72,6 +72,19 @@ The test database is **automatically created before tests and dropped after test
 make test-behat  # Automatically creates, migrates, and drops test DB
 ```
 
+### Creating `.env.test`
+
+While tests force `APP_ENV=test` and `DATABASE_URL` can be provided via the environment, it's convenient to have a local `.env.test` file. Use the committed test template and copy it locally:
+
+```bash
+cp .env.test.dist .env.test
+# or, if you prefer to create from the general example:
+cp .env.example .env.test
+```
+
+`.env.test` is ignored by Git and intended only for local/CI usage. In CI, prefer injecting secrets via the runner and avoid committing sensitive values.
+
+
 #### Guarantee: Tests Never Touch Development Data
 
 When you run `make test-unit` or `make test-behat`, we **override** the container environment so tests use **only** the test database:
