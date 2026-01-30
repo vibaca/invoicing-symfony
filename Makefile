@@ -7,7 +7,13 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 install: ## Install dependencies
-	docker-compose run --rm php sh -c "COMPOSER_MEMORY_LIMIT=-1 composer update --no-interaction --no-security-blocking --no-scripts --no-plugins" || docker-compose run --rm php composer update --no-interaction --no-security-blocking --no-scripts
+	@if [ ! -d vendor ]; then \
+		echo "Installing dependencies from lock file..."; \
+		docker-compose run --rm php composer install --no-interaction; \
+	else \
+		echo "Updating dependencies..."; \
+		docker-compose run --rm php composer update --no-interaction --no-security-blocking; \
+	fi
 
 update: ## Update dependencies
 	docker-compose run --rm php composer update --no-interaction --no-security-blocking
@@ -43,7 +49,11 @@ phpcs: ## Run PHP CodeSniffer
 phpcbf: ## Fix code style issues
 	docker-compose run --rm php vendor/bin/phpcbf
 
-migrate: ## Run database migrations
+migrate: ## Run migrations
+	@if [ ! -d vendor ]; then \
+		echo "Installing dependencies..."; \
+		docker-compose run --rm php composer install; \
+	fi
 	docker-compose run --rm php bin/console doctrine:migrations:migrate --no-interaction
 
 db-reset: ## Reinitialize development database (terminate connections, drop, create, migrate)
@@ -92,10 +102,9 @@ check: ## Check if services are running
 
 setup: build install migrate up ## Complete setup (build, install, migrate, start)
 
-reset: # Complete reset: removes dependencies, containers and reinstalls everything
-	@echo "🧹 Resetting project"
+reset:
+	@echo "🧹 Resetting project to fresh git clone state..."
 	rm -rf vendor/ var/ composer.lock
 	docker-compose down -v
 	docker system prune -f
-	$(MAKE) setup
-	@echo "✅ Project reset and ready"
+	@echo "✅ Project reset. Run 'make setup' to install everything."
