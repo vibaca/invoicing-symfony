@@ -140,7 +140,7 @@ check: ## Check if services are running
 	@echo "\nChecking Nginx..."
 	@curl -s http://localhost:8080 > /dev/null && echo "Nginx is responding" || echo "Nginx is not responding"
 
-setup: build install migrate up ## Complete setup (build, install, migrate, start)
+setup: env-create build install migrate up ## Complete setup (create env, build, install, migrate, start)
 
 reset:
 	@echo "🧹 Resetting project to fresh git clone state (project-scoped)..."
