@@ -101,6 +101,8 @@ env-test-create: ## Create .env.test from .env.test.dist/.env.example or create 
 		echo "Creating .env.test from .env.example (overriding DATABASE_URL + APP_ENV)"; \
 		awk '/^DATABASE_URL=/ {print "DATABASE_URL=postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_test_db?serverVersion=16&charset=utf8"; next} {print}' .env.example > .env.test; \
 		awk '/^APP_ENV=/ {print "APP_ENV=test"; next} {print}' .env.test > .env.test.tmp && mv .env.test.tmp .env.test || true; \
+		# Ensure MESSENGER_TRANSPORT_DSN is present for tests (fallback to sync transport)
+		grep -q '^MESSENGER_TRANSPORT_DSN=' .env.test || echo 'MESSENGER_TRANSPORT_DSN=sync://' >> .env.test; \
 		echo "✓ .env.test created - please edit .env.test to adjust local credentials"; \
 	else \
 		echo "No template (.env.test.dist or .env.example) found — creating minimal .env.test"; \
