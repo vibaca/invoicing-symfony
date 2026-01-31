@@ -114,6 +114,11 @@ cp .env.test.dist .env.test
 ```
 
 `.env` and `.env.test` are ignored by Git; keep only templates (`.env.example`, `.env.test.dist`) in the repository and copy them locally to avoid committing secrets.
+
+Note about automation:
+
+- `make setup` now ensures both `.env` and `.env.test` exist by invoking the helper scripts in `scripts/` if templates are present. This means a fresh clone can run `make setup` and then `make test` without having to manually create `.env.test`.
+- The helper script used for test env guarantees `MESSENGER_TRANSPORT_DSN=sync://` is set in `.env.test` when needed so acceptance tests run with an in-process transport by default.
 ```
 
 ### Reinitialize development database

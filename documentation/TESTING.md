@@ -84,6 +84,12 @@ cp .env.example .env.test
 
 `.env.test` is ignored by Git and intended only for local/CI usage. In CI, prefer injecting secrets via the runner and avoid committing sensitive values.
 
+Automation and helper scripts
+
+- The repository includes `scripts/env-create.sh` and `scripts/env-test-create.sh` to create `.env` and `.env.test` from templates in a robust, cross-platform way. These scripts are invoked by the `Makefile` targets `env-create` and `env-test-create` respectively.
+- `make setup` will now call `env-create` and `env-test-create` so a fresh clone can run `make setup` and then `make test` without additional manual steps.
+- The test env script ensures `MESSENGER_TRANSPORT_DSN=sync://` is present in `.env.test` by default to run tests without an external message broker.
+
 
 #### Guarantee: Tests Never Touch Development Data
 
