@@ -1,4 +1,4 @@
-.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset env-create env-test-create reset
+.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset env-create env-test-create reset verify
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -32,6 +32,13 @@ build: ## Build Docker images
 
 test: test-unit test-behat ## Run all tests
 
+verify: phpstan phpcbf phpcs test ## Run static analysis, style auto-fix, checks, and tests
+	@echo "Running PHPStan, PHP Code Beautifier (phpcbf), style checks (phpcs), then tests..."
+	$(MAKE) phpstan
+	$(MAKE) phpcbf || true
+	$(MAKE) phpcs
+	$(MAKE) test
+
 TEST_DATABASE_URL=postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_test_db?serverVersion=16&charset=utf8
 
 test-unit: ## Run unit tests (use test DB; overrides container DATABASE_URL)
@@ -41,7 +48,7 @@ test-behat: ## Run Behat acceptance tests (creates and drops test DB; forces tes
 	docker-compose run --rm -e APP_ENV=test -e DATABASE_URL="$(TEST_DATABASE_URL)" -e MESSENGER_TRANSPORT_DSN=sync:// php vendor/bin/behat
 
 phpstan: ## Run PHPStan static analysis
-	docker-compose run --rm php vendor/bin/phpstan analyse
+	docker-compose run --rm php vendor/bin/phpstan analyse src tests
 
 phpcs: ## Run PHP CodeSniffer
 	docker-compose run --rm php vendor/bin/phpcs

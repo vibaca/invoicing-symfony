@@ -165,6 +165,23 @@ Now we can use simple, readable test data:
 make test
 ```
 
+### Verify (style + tests)
+
+You can run a single command that attempts to auto-fix style problems, runs style checks, and then executes the full test suite:
+
+```bash
+make verify
+```
+
+What it does:
+- `make phpstan` — run static analysis (PHPStan)
+- `make phpcbf` — attempts to auto-fix style issues (non-fatal)
+- `make phpcs`  — runs CodeSniffer to report remaining style issues
+- `make test`   — runs unit + acceptance tests
+
+Use this when you want a single command to validate code quality and correctness before committing.
+
+
 ### Only Acceptance Tests (Behat)
 
 ```bash

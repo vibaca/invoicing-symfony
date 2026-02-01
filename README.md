@@ -89,6 +89,7 @@ make build          # Build Docker images
 make test           # Run all tests (unit + acceptance)
 make test-unit      # Run unit tests only
 make test-behat     # Run Behat acceptance tests
+make verify         # Run static analysis, code style auto-fix, style checks, and all tests
 make phpstan        # Run PHPStan static analysis
 make phpcs          # Run PHP CodeSniffer
 make phpcbf         # Fix code style issues automatically
