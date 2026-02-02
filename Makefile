@@ -1,4 +1,4 @@
-.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset env-create env-test-create reset verify
+.PHONY: help install up down build test test-unit test-behat phpstan phpcs phpcbf clean migrate db-reset env-create env-test-create reset verify worker-start worker-stop
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -81,8 +81,22 @@ migrate-create: ## Create a new migration
 env-create: ## Create .env from .env.example/.env.test or create minimal .env if no template
 	@sh ./scripts/env-create.sh
 
+
 env-test-create: ## Create .env.test from .env.test.dist/.env.example or create minimal .env.test if no template
 	@sh ./scripts/env-test-create.sh
+
+worker-start: ## Start messenger worker (background container named invoicing-worker)
+	@echo "Starting messenger worker..."
+	@if [ "$$(docker ps -q -f name=invoicing-worker)" = "" ]; then \
+		docker-compose run -d --name invoicing-worker --no-deps php php bin/console messenger:consume async -vv; \
+		echo "Worker started (container: invoicing-worker)"; \
+	else \
+		echo "Worker already running"; \
+	fi
+
+worker-stop: ## Stop messenger worker (remove background container invoicing-worker)
+	@echo "Stopping messenger worker..."
+	-docker rm -f invoicing-worker 2>/dev/null || true
 
 test-db-create: ## Create test database
 	docker-compose exec -T postgres psql -U invoicing_user -d postgres -c "CREATE DATABASE invoicing_test_db;" || echo "Database may already exist"
@@ -113,7 +127,7 @@ check: ## Check if services are running
 	@echo "\nChecking Nginx..."
 	@curl -s http://localhost:8080 > /dev/null && echo "Nginx is responding" || echo "Nginx is not responding"
 
-setup: env-create env-test-create build install migrate up ## Complete setup (create env, build, install, migrate, start)
+setup: env-create env-test-create build install migrate up worker-start ## Complete setup (create env, build, install, migrate, start and start worker)
 
 reset:
 	@echo "🧹 Resetting project to fresh git clone state (project-scoped)..."

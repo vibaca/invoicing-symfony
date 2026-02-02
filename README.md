@@ -126,21 +126,24 @@ Note about templates:
 
 Worker & RabbitMQ in development:
 
-- By default `.env.example` and the project's `docker-compose.yml` are configured to use RabbitMQ (AMQP). The project includes a `worker` service that runs the Symfony Messenger consumer for the `async` transport.
-- `make setup` calls `docker-compose up -d`, so if the `worker` service is defined in `docker-compose.yml` it will be started as part of `make setup`.
-- If you prefer to control the worker manually (so it does not start with `make setup`), you can:
-  - Start it on demand: `docker-compose up -d worker`
-  - Run an ad-hoc consumer: `docker-compose run --rm php php bin/console messenger:consume async -vv`
-  - Or move the `worker` to a compose profile and start it only when needed (example):
+- By default `.env.example` and the project's `docker-compose.yml` are configured to use RabbitMQ (AMQP). Asynchronous messages published to the `async` transport are processed by a Messenger consumer (the "worker").
+- This repository provides Make targets to manage the worker from your development environment:
 
-```yaml
-# in docker-compose.yml (worker):
-#   profiles: ["worker"]
+```bash
+make worker-start   # Start the messenger consumer in background (container: invoicing-worker)
+make worker-stop    # Stop and remove the background worker container
 ```
 
-  Then start with: `docker compose --profile worker up -d worker`.
+- `make setup` now runs `make worker-start` after starting containers, so a fresh developer can run `make setup` and have the worker started automatically.
+- If you prefer to run the consumer ad-hoc (instead of the background container), you can run it manually inside the `php` container:
 
-- Important: tests run with `MESSENGER_TRANSPORT_DSN=sync://` (via `.env.test` or Makefile overrides) so they do not depend on RabbitMQ; the worker is only needed to process asynchronous listeners in development.
+```bash
+docker-compose run --rm php php bin/console messenger:consume async -vv
+# or, if you have a local PHP set up for development
+php bin/console messenger:consume async -vv
+```
+
+- Important: acceptance tests run with `MESSENGER_TRANSPORT_DSN=sync://` (via `.env.test` or Makefile overrides) so they do not depend on RabbitMQ; the worker is only needed to process asynchronous listeners in development.
 ```
 
 ### Reinitialize development database

@@ -68,9 +68,22 @@ Note: The repository's `.env.example` may contain a RabbitMQ DSN for development
 
 Developer note about the worker:
 
-- The project includes a `worker` service in `docker-compose.yml` that consumes messages from the `async` transport (RabbitMQ) and executes event listeners.
-- `make setup` calls `docker-compose up -d`, so if `worker` is defined it will be started by `make setup`. If you do not want the worker to start automatically, move it to a compose profile (for example `profiles: ["worker"]`) and start it manually with `docker compose --profile worker up -d worker`.
-- Tests remain isolated and deterministic because `.env.test` and the test Make targets force `MESSENGER_TRANSPORT_DSN=sync://` so they run inline and do not require RabbitMQ.
+- Asynchronous messages published to the `async` transport are processed by a Messenger consumer (the "worker"). This project provides Make targets to manage the worker from your development environment:
+
+```bash
+make worker-start   # Start the messenger consumer in background (container: invoicing-worker)
+make worker-stop    # Stop and remove the background worker container
+```
+
+- `make setup` runs `make worker-start` after starting containers, so a fresh clone will have the worker started automatically. If you prefer not to run a background container, run the consumer ad-hoc:
+
+```bash
+docker-compose run --rm php php bin/console messenger:consume async -vv
+# or locally
+php bin/console messenger:consume async -vv
+```
+
+- Tests remain isolated and deterministic because `.env.test` and the Makefile test targets force `MESSENGER_TRANSPORT_DSN=sync://` so they run inline and do not require RabbitMQ.
 
 #### Test Database Setup
 
