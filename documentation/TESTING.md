@@ -64,6 +64,14 @@ Each Behat scenario runs with explicit data cleanup using `TRUNCATE`:
 DATABASE_URL=postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_test_db?serverVersion=16&charset=utf8
 ```
 
+Note: The repository's `.env.example` may contain a RabbitMQ DSN for development (so running the app after `make setup` may default to using RabbitMQ). Tests, however, run with `MESSENGER_TRANSPORT_DSN=sync://` via the `.env.test` template or Makefile overrides to avoid relying on an external broker.
+
+Developer note about the worker:
+
+- The project includes a `worker` service in `docker-compose.yml` that consumes messages from the `async` transport (RabbitMQ) and executes event listeners.
+- `make setup` calls `docker-compose up -d`, so if `worker` is defined it will be started by `make setup`. If you do not want the worker to start automatically, move it to a compose profile (for example `profiles: ["worker"]`) and start it manually with `docker compose --profile worker up -d worker`.
+- Tests remain isolated and deterministic because `.env.test` and the test Make targets force `MESSENGER_TRANSPORT_DSN=sync://` so they run inline and do not require RabbitMQ.
+
 #### Test Database Setup
 
 The test database is **automatically created before tests and dropped after tests**:

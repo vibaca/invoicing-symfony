@@ -120,6 +120,27 @@ Note about automation:
 
 - `make setup` now ensures both `.env` and `.env.test` exist by invoking the helper scripts in `scripts/` if templates are present. This means a fresh clone can run `make setup` and then `make test` without having to manually create `.env.test`.
 - The helper script used for test env guarantees `MESSENGER_TRANSPORT_DSN=sync://` is set in `.env.test` when needed so acceptance tests run with an in-process transport by default.
+ 
+Note about templates:
+- `.env.example` contains a RabbitMQ DSN that matches the project's `docker-compose.yml` defaults. If you prefer to run handlers synchronously during development, change `MESSENGER_TRANSPORT_DSN` in your local `.env` to `sync://`.
+
+Worker & RabbitMQ in development:
+
+- By default `.env.example` and the project's `docker-compose.yml` are configured to use RabbitMQ (AMQP). The project includes a `worker` service that runs the Symfony Messenger consumer for the `async` transport.
+- `make setup` calls `docker-compose up -d`, so if the `worker` service is defined in `docker-compose.yml` it will be started as part of `make setup`.
+- If you prefer to control the worker manually (so it does not start with `make setup`), you can:
+  - Start it on demand: `docker-compose up -d worker`
+  - Run an ad-hoc consumer: `docker-compose run --rm php php bin/console messenger:consume async -vv`
+  - Or move the `worker` to a compose profile and start it only when needed (example):
+
+```yaml
+# in docker-compose.yml (worker):
+#   profiles: ["worker"]
+```
+
+  Then start with: `docker compose --profile worker up -d worker`.
+
+- Important: tests run with `MESSENGER_TRANSPORT_DSN=sync://` (via `.env.test` or Makefile overrides) so they do not depend on RabbitMQ; the worker is only needed to process asynchronous listeners in development.
 ```
 
 ### Reinitialize development database

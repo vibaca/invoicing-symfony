@@ -71,6 +71,29 @@ services:
     depends_on:
       - php
 
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: invoicing_worker
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - invoicing_network
+    depends_on:
+      postgres:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://invoicing_user:invoicing_pass@postgres:5432/invoicing_db?serverVersion=16&charset=utf8
+      MESSENGER_TRANSPORT_DSN: "${MESSENGER_TRANSPORT_DSN:-amqp://rabbitmq_user:rabbitmq_pass@rabbitmq:5672/%2f}"
+      APP_ENV: "${APP_ENV:-dev}"
+      APP_SECRET: "${APP_SECRET:-change_this_secret_key_in_production}"
+    command: ["php", "bin/console", "messenger:consume", "async", "-vv"]
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   rabbitmq_data:
