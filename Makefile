@@ -85,18 +85,17 @@ env-create: ## Create .env from .env.example/.env.test or create minimal .env if
 env-test-create: ## Create .env.test from .env.test.dist/.env.example or create minimal .env.test if no template
 	@sh ./scripts/env-test-create.sh
 
-worker-start: ## Start messenger worker (background container named invoicing-worker)
-	@echo "Starting messenger worker..."
-	@if [ "$$(docker ps -q -f name=invoicing-worker)" = "" ]; then \
-		docker-compose run -d --name invoicing-worker --no-deps php php bin/console messenger:consume async -vv; \
-		echo "Worker started (container: invoicing-worker)"; \
-	else \
-		echo "Worker already running"; \
+worker-start: ## Start messenger worker inside running `php` container (detached)
+	@echo "Starting messenger worker inside php container..."
+	@if [ -z "$$(docker-compose ps -q php)" ]; then \
+		echo "PHP container not running; starting containers first..."; \
+		docker-compose up -d; \
 	fi
+	@docker-compose exec -d php php bin/console messenger:consume async -vv || echo "Failed to start worker (ensure php container is running)"
 
-worker-stop: ## Stop messenger worker (remove background container invoicing-worker)
-	@echo "Stopping messenger worker..."
-	-docker rm -f invoicing-worker 2>/dev/null || true
+worker-stop: ## Stop messenger worker processes inside `php` container
+	@echo "Stopping messenger worker processes in php container..."
+	@docker-compose exec -T php sh -c "ps aux | grep '[m]essenger:consume' | awk '{print \$$1}' | xargs -I{} kill -9 {}" || true
 
 test-db-create: ## Create test database
 	docker-compose exec -T postgres psql -U invoicing_user -d postgres -c "CREATE DATABASE invoicing_test_db;" || echo "Database may already exist"

@@ -70,12 +70,13 @@ Developer note about the worker:
 
 - Asynchronous messages published to the `async` transport are processed by a Messenger consumer (the "worker"). This project provides Make targets to manage the worker from your development environment:
 
+
 ```bash
-make worker-start   # Start the messenger consumer in background (container: invoicing-worker)
-make worker-stop    # Stop and remove the background worker container
+make worker-start   # Start the messenger consumer in background (runs inside the `php` container)
+make worker-stop    # Stop messenger consumer processes running inside the `php` container
 ```
 
-- `make setup` runs `make worker-start` after starting containers, so a fresh clone will have the worker started automatically. If you prefer not to run a background container, run the consumer ad-hoc:
+- `make setup` runs `make worker-start` after starting containers, so a fresh clone will have the consumer started automatically (inside the running `php` container). If you prefer not to run a background consumer process, run the consumer ad-hoc:
 
 ```bash
 docker-compose run --rm php php bin/console messenger:consume async -vv

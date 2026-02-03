@@ -129,12 +129,12 @@ Worker & RabbitMQ in development:
 - By default `.env.example` and the project's `docker-compose.yml` are configured to use RabbitMQ (AMQP). Asynchronous messages published to the `async` transport are processed by a Messenger consumer (the "worker").
 - This repository provides Make targets to manage the worker from your development environment:
 
-```bash
-make worker-start   # Start the messenger consumer in background (container: invoicing-worker)
-make worker-stop    # Stop and remove the background worker container
+-```bash
+make worker-start   # Start the messenger consumer in background (runs inside the `php` container)
+make worker-stop    # Stop messenger consumer processes running inside the `php` container
 ```
 
-- `make setup` now runs `make worker-start` after starting containers, so a fresh developer can run `make setup` and have the worker started automatically.
+- `make setup` now runs `make worker-start` after starting containers, so a fresh developer can run `make setup` and have the consumer started automatically (inside the running `php` container).
 - If you prefer to run the consumer ad-hoc (instead of the background container), you can run it manually inside the `php` container:
 
 ```bash
