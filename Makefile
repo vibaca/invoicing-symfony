@@ -132,7 +132,7 @@ reset:
 	@echo "🧹 Resetting project to fresh git clone state (project-scoped)..."
 	# Remove local env files
 	-rm -f .env .env.test
-	rm -rf vendor/ var/ composer.lock
+	rm -rf vendor/ var/
 	## stop and remove only this compose project containers, images and volumes
 		docker-compose -p invoicing-symfony down --rmi local -v --remove-orphans
 	## Remove images created/labelled by this compose project (safe: only project images)
