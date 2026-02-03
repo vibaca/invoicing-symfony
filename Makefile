@@ -9,7 +9,7 @@ help: ## Show this help message
 install: ## Install dependencies
 	@if [ ! -d vendor ]; then \
 		echo "Installing dependencies from lock file..."; \
-		docker-compose run --rm php composer install --no-interaction; \
+		docker-compose run --rm -e COMPOSER_PROCESS_TIMEOUT=2000 php composer install --no-interaction; \
 	else \
 		echo "Updating dependencies..."; \
 		docker-compose run --rm php composer update --no-interaction --no-security-blocking; \
@@ -59,7 +59,7 @@ phpcbf: ## Fix code style issues
 migrate: ## Run migrations
 	@if [ ! -d vendor ]; then \
 		echo "Installing dependencies..."; \
-		docker-compose run --rm php composer install; \
+		docker-compose run --rm -e COMPOSER_PROCESS_TIMEOUT=2000 php composer install; \
 	fi
 	docker-compose run --rm php bin/console doctrine:migrations:migrate --no-interaction
 
